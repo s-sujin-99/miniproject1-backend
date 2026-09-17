@@ -5,6 +5,10 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.MDC;
+
+import com.pharmaprice.common.web.TraceIdFilter;
+
 /**
  * API.md §1.2 에러 응답 포맷. fieldErrors는 검증 실패일 때만 채운다.
  */
@@ -27,8 +31,12 @@ public record ErrorResponse(
     }
 
     public static ErrorResponse of(ErrorCode errorCode, String message, List<FieldErrorDetail> fieldErrors) {
-        // traceId는 요청 추적용 짧은 식별자. 별도 트레이싱 도입 전까지는 랜덤 UUID 앞 8자리로 대신한다.
-        String traceId = UUID.randomUUID().toString().substring(0, 8);
+        // TraceIdFilter가 MDC에 심어둔 값과 같은 traceId를 써야 로그 검색이 된다. 필터를 거치지 않는
+        // 컨텍스트(테스트 등)를 대비해 없으면 새로 하나 발급한다.
+        String traceId = MDC.get(TraceIdFilter.TRACE_ID_KEY);
+        if (traceId == null) {
+            traceId = UUID.randomUUID().toString().substring(0, 8);
+        }
         return new ErrorResponse(errorCode.getCode(), message, fieldErrors, traceId, OffsetDateTime.now(KST));
     }
 
