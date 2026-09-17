@@ -111,6 +111,12 @@
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
+			<!-- Boot 4.1부터 Flyway 자동 설정이 별도 모듈로 분리됐다(spring-boot-hibernate와 같은 패턴).
+			     flyway-core만 있으면 FlywayAutoConfiguration이 로드되지 않는다. -->
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-flyway</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
 		</dependency>

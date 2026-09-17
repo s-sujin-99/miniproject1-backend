@@ -1,4 +1,4 @@
-package com.example.config;
+package com.pharmaprice.common.config;
 
 import java.time.OffsetDateTime;
 import java.util.Optional;

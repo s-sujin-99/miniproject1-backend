@@ -1,4 +1,4 @@
-package com.example.config;
+package com.pharmaprice.common.config;
 
 import java.io.IOException;
 
@@ -7,8 +7,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
-import com.example.exception.ErrorCode;
-import com.example.exception.ErrorResponse;
+import com.pharmaprice.common.exception.ErrorCode;
+import com.pharmaprice.common.exception.ErrorResponse;
 
 import tools.jackson.databind.ObjectMapper;
 

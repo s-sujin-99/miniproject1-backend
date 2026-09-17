@@ -1,4 +1,4 @@
-package com.example.exception;
+package com.pharmaprice.common.exception;
 
 import java.util.List;
 
@@ -7,8 +7,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +40,34 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of(ErrorCode.VALIDATION_FAILED, ErrorCode.VALIDATION_FAILED.getMessage(), fieldErrors));
     }
 
+    // 필수 쿼리 파라미터 누락(예: GET /api/v1/search의 drugId) — 전역 Exception 핸들러가 가로채기 전에
+    // 먼저 잡아 VALIDATION_FAILED로 변환한다. 나머지 에러 코드 매핑은 T-35에서 마저 채운다.
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingParameter(MissingServletRequestParameterException e) {
+        return ResponseEntity.status(ErrorCode.VALIDATION_FAILED.getHttpStatus())
+                .body(ErrorResponse.of(ErrorCode.VALIDATION_FAILED, "필수 파라미터가 없습니다: " + e.getParameterName()));
+    }
+
+    // 쿼리 파라미터 타입 불일치(예: drugId=abc, lat=문자열).
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        return ResponseEntity.status(ErrorCode.VALIDATION_FAILED.getHttpStatus())
+                .body(ErrorResponse.of(ErrorCode.VALIDATION_FAILED, "파라미터 형식이 올바르지 않습니다: " + e.getName()));
+    }
+
     // Spring Security 필터 체인에서 인증/인가 예외가 컨트롤러까지 오지 않고 여기로 잡히는 경우(예: 서비스 레이어에서 직접 던진 경우) 대비.
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
         return ResponseEntity.status(ErrorCode.UNAUTHENTICATED.getHttpStatus())
                 .body(ErrorResponse.of(ErrorCode.UNAUTHENTICATED));
+    }
+
+    // spring.servlet.multipart.max-file-size(10MB)를 넘는 요청 — 업로드 API 자체 한도(5MB)보다
+    // 훨씬 큰 파일만 여기로 온다(ROADMAP T-27).
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(ErrorCode.FILE_TOO_LARGE.getHttpStatus())
+                .body(ErrorResponse.of(ErrorCode.FILE_TOO_LARGE));
     }
 
     @ExceptionHandler(AccessDeniedException.class)

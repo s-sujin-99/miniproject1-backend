@@ -1,4 +1,4 @@
-package com.example.exception;
+package com.pharmaprice.common.exception;
 
 /**
  * 서비스 레이어에서 던지는 표준 예외. 컨트롤러는 이 예외를 잡지 않고

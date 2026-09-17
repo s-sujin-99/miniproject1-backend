@@ -1,4 +1,4 @@
-package com.example.domain;
+package com.pharmaprice.common.domain;
 
 import java.time.OffsetDateTime;
 

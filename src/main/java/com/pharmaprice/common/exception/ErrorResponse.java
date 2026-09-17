@@ -1,4 +1,4 @@
-package com.example.exception;
+package com.pharmaprice.common.exception;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
