@@ -37,3 +37,6 @@ build/
 .env.*
 !.env.example
 application-local.properties
+
+### Uploads (ROADMAP T-27, app.upload-dir) ###
+/uploads/
