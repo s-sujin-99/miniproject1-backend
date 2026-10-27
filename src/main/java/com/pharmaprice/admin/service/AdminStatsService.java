@@ -14,6 +14,7 @@ import com.pharmaprice.admin.dto.DrugStatsResponse;
 import com.pharmaprice.admin.dto.OverviewResponse;
 import com.pharmaprice.admin.dto.PriceGapsResponse;
 import com.pharmaprice.admin.dto.RegionStatsResponse;
+import com.pharmaprice.admin.dto.TopReportersResponse;
 import com.pharmaprice.admin.repository.AdminStatsRepository;
 import com.pharmaprice.admin.repository.AdminStatsRepository.NationalStatRow;
 import com.pharmaprice.admin.repository.AdminStatsRepository.PriceGapSourceRow;
@@ -49,8 +50,10 @@ public class AdminStatsService {
                 .toList();
         long flaggedCount = repository.countFlaggedReports();
         long possiblePairs = (long) totals.pharmacyCount() * totals.drugCount();
+        // 약국×약품 조합 수가 커서(수천만~수억) 실제 커버리지가 있어도 정수%로 반올림하면 0%로
+        // 보인다 — 소수점 둘째 자리(0.01%)까지 남겨 프론트가 "0%"와 "아직 작음"을 구분할 수 있게 한다.
         double coverageRate = possiblePairs == 0 ? 0.0
-                : Math.round((double) totals.coveredPairCount() / possiblePairs * 100) / 100.0;
+                : Math.round((double) totals.coveredPairCount() / possiblePairs * 10000) / 10000.0;
 
         return new OverviewResponse(
                 new OverviewResponse.Totals(totals.pharmacyCount(), totals.drugCount(), totals.reportCount(),
@@ -117,5 +120,13 @@ public class AdminStatsService {
 
         rows.sort(Comparator.comparingDouble(PriceGapsResponse.Row::gapPct).reversed());
         return new PriceGapsResponse(rows.stream().limit(limit).toList());
+    }
+
+    public TopReportersResponse topReporters(int limit) {
+        List<TopReportersResponse.Row> rows = repository.findTopReporters(limit).stream()
+                .map(r -> new TopReportersResponse.Row(
+                        new TopReportersResponse.Reporter(r.userId(), r.nickname(), r.email()), r.reportCount()))
+                .toList();
+        return new TopReportersResponse(rows);
     }
 }

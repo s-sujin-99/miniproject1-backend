@@ -11,6 +11,7 @@ import com.pharmaprice.admin.dto.DrugStatsResponse;
 import com.pharmaprice.admin.dto.OverviewResponse;
 import com.pharmaprice.admin.dto.PriceGapsResponse;
 import com.pharmaprice.admin.dto.RegionStatsResponse;
+import com.pharmaprice.admin.dto.TopReportersResponse;
 import com.pharmaprice.admin.service.AdminStatsService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,8 @@ public class AdminStatsController {
 
     private static final int DEFAULT_PRICE_GAP_LIMIT = 10;
     private static final int MAX_PRICE_GAP_LIMIT = 50;
+    private static final int DEFAULT_TOP_REPORTERS_LIMIT = 10;
+    private static final int MAX_TOP_REPORTERS_LIMIT = 50;
 
     private final AdminStatsService adminStatsService;
 
@@ -53,5 +56,12 @@ public class AdminStatsController {
     public PriceGapsResponse priceGaps(@RequestParam(defaultValue = "" + DEFAULT_PRICE_GAP_LIMIT) int limit) {
         int boundedLimit = Math.min(Math.max(limit, 1), MAX_PRICE_GAP_LIMIT);
         return adminStatsService.priceGaps(boundedLimit);
+    }
+
+    @GetMapping("/top-reporters")
+    public TopReportersResponse topReporters(
+            @RequestParam(defaultValue = "" + DEFAULT_TOP_REPORTERS_LIMIT) int limit) {
+        int boundedLimit = Math.min(Math.max(limit, 1), MAX_TOP_REPORTERS_LIMIT);
+        return adminStatsService.topReporters(boundedLimit);
     }
 }

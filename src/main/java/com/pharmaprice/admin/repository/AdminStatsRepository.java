@@ -104,6 +104,20 @@ public class AdminStatsRepository {
             ORDER BY s.drug_id
             """;
 
+    // app_user.report_count는 앱을 거쳐 들어온 제보만 반영한다(PriceReportService.increaseReportCount()).
+    // 시드 데이터(build_price_seed.py)는 price_report에 user_id를 직접 채워 넣지만 이 카운터는 건드리지
+    // 않아 seed 제보자는 항상 0건으로 보인다 — 그래서 카운터를 재사용하지 않고 price_report를 직접
+    // 집계한다. REJECTED는 AppUser.decreaseReportCount()가 차감하는 것과 같은 이유로 제외한다.
+    private static final String TOP_REPORTERS_SQL = """
+            SELECT u.id, u.nickname, u.email, COUNT(*) AS report_count
+            FROM price_report r
+            JOIN app_user u ON u.id = r.user_id
+            WHERE r.deleted_at IS NULL AND r.status <> 'REJECTED' AND u.deleted_at IS NULL
+            GROUP BY u.id, u.nickname, u.email
+            ORDER BY report_count DESC, u.id ASC
+            LIMIT :limit
+            """;
+
     private final EntityManager entityManager;
 
     public AdminStatsRepository(EntityManager entityManager) {
@@ -169,6 +183,15 @@ public class AdminStatsRepository {
                 .toList();
     }
 
+    @SuppressWarnings("unchecked")
+    public List<TopReporterRow> findTopReporters(int limit) {
+        List<Object[]> rows = entityManager.createNativeQuery(TOP_REPORTERS_SQL)
+                .setParameter("limit", limit).getResultList();
+        return rows.stream()
+                .map(r -> new TopReporterRow(((Number) r[0]).longValue(), (String) r[1], (String) r[2], toInt(r[3])))
+                .toList();
+    }
+
     private RegionStatRow toRegionStatRow(Object[] row) {
         return new RegionStatRow(
                 (String) row[0], (String) row[1], (String) row[2],
@@ -208,5 +231,8 @@ public class AdminStatsRepository {
     }
 
     public record PriceGapSourceRow(long drugId, String drugDisplayName, String sido, String sigungu, double regionAvg) {
+    }
+
+    public record TopReporterRow(long userId, String nickname, String email, int reportCount) {
     }
 }

@@ -20,7 +20,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * ROADMAP T-31 완료 판정 — 관리자 통계 4개 엔드포인트를 실제 HTTP 경로로 검증한다.
+ * ROADMAP T-31 완료 판정 — 관리자 통계 5개 엔드포인트를 실제 HTTP 경로로 검증한다.
  * 시드(V2__seed_master.sql)가 이미 충분한 규모라 표본 3건 미만 필터/집계를 실데이터로 확인할 수 있다.
  */
 class AdminStatsControllerTest extends AbstractIntegrationTest {
@@ -29,7 +29,7 @@ class AdminStatsControllerTest extends AbstractIntegrationTest {
     ObjectMapper objectMapper;
 
     @Test
-    void USER_토큰으로_4개_엔드포인트_모두_403이다() throws Exception {
+    void USER_토큰으로_5개_엔드포인트_모두_403이다() throws Exception {
         String token = signupAndLoginUser();
 
         mockMvc.perform(get("/api/v1/admin/stats/overview").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
@@ -39,6 +39,8 @@ class AdminStatsControllerTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/admin/stats/drugs/1").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/v1/admin/stats/price-gaps").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/v1/admin/stats/top-reporters").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isForbidden());
     }
 
@@ -121,6 +123,30 @@ class AdminStatsControllerTest extends AbstractIntegrationTest {
             assertThat(gap).isGreaterThanOrEqualTo(0);
             assertThat(gapPct).isLessThanOrEqualTo(previousGapPct);
             previousGapPct = gapPct;
+        }
+    }
+
+    @Test
+    void top_reporters는_report_count_내림차순이고_0건_사용자는_없다() throws Exception {
+        String token = adminLogin();
+
+        MvcResult result = mockMvc.perform(get("/api/v1/admin/stats/top-reporters").param("limit", "5")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        JsonNode rows = objectMapper.readTree(result.getResponse().getContentAsString()).path("rows");
+        assertThat(rows.size()).isGreaterThan(0);
+        assertThat(rows.size()).isLessThanOrEqualTo(5);
+
+        int previousCount = Integer.MAX_VALUE;
+        for (JsonNode row : rows) {
+            assertThat(row.path("reporter").path("nickname").asText()).isNotBlank();
+            assertThat(row.path("reporter").path("email").asText()).isNotBlank();
+            int count = row.path("reportCount").asInt();
+            assertThat(count).isGreaterThan(0);
+            assertThat(count).isLessThanOrEqualTo(previousCount);
+            previousCount = count;
         }
     }
 
