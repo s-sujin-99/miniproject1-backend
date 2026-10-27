@@ -13,6 +13,7 @@ public record PharmacyDetailResponse(
         double lat,
         double lng,
         String phone,
+        String photoUrl,
         Map<String, List<String>> businessHours,
         Integer distanceM,
         PharmacyRegionResponse region,

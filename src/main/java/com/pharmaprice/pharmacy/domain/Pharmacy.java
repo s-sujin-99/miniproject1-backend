@@ -65,6 +65,10 @@ public class Pharmacy {
     @Column(length = 20)
     private String phone;
 
+    // 현재 데이터 소스에 약국 사진이 없어 항상 null — 실제 소스가 생기면 채워 넣는다.
+    @Column(name = "photo_url", length = 500)
+    private String photoUrl;
+
     // {"mon":["09:00","19:00"], ..., "holiday":null}
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "business_hours", columnDefinition = "jsonb")
@@ -79,7 +83,7 @@ public class Pharmacy {
 
     @Builder
     private Pharmacy(String hiraCode, String name, String addressRoad, String addressJibun, Region region,
-            double lat, double lng, String phone, Map<String, List<String>> businessHours) {
+            double lat, double lng, String phone, String photoUrl, Map<String, List<String>> businessHours) {
         this.hiraCode = hiraCode;
         this.name = name;
         this.addressRoad = addressRoad;
@@ -88,6 +92,7 @@ public class Pharmacy {
         this.lat = lat;
         this.lng = lng;
         this.phone = phone;
+        this.photoUrl = photoUrl;
         this.businessHours = businessHours;
         this.active = true;
     }

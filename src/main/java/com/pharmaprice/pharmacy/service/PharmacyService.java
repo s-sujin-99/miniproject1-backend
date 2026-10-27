@@ -86,7 +86,7 @@ public class PharmacyService {
 
         return new PharmacyDetailResponse(pharmacy.getId(), pharmacy.getName(), pharmacy.getAddressRoad(),
                 pharmacy.getAddressJibun(), pharmacy.getLat(), pharmacy.getLng(), pharmacy.getPhone(),
-                pharmacy.getBusinessHours(), distanceM, regionResponse, drugPrices);
+                pharmacy.getPhotoUrl(), pharmacy.getBusinessHours(), distanceM, regionResponse, drugPrices);
     }
 
     /** 이력 0건(약국·약품 조합이 존재하지 않거나 제보가 없음)이어도 빈 배열 + 200을 반환한다(404 아님, API.md §4). */
