@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: miniproject1-backend
+    runtime: docker
+    plan: free
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      # 운영에서는 SQL 디버그 로그를 끈다.
+      - key: SPRING_JPA_SHOW_SQL
+        value: "false"
+      - key: LOGGING_LEVEL_ORG_HIBERNATE_SQL
+        value: info
+      - key: UPLOAD_DIR
+        value: /tmp/uploads
