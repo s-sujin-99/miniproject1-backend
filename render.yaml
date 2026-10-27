@@ -3,6 +3,8 @@ services:
     name: miniproject1-backend
     runtime: docker
     plan: free
+    # 한국 사용자와 Neon DB(싱가포르)에 가까운 지역
+    region: singapore
     envVars:
       - key: DB_URL
         sync: false
